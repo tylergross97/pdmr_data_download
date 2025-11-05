@@ -1,5 +1,5 @@
 process DOWNLOAD_FILE {
-    conda "conda-forge::curl=8.4.0"
+    container 'community.wave.seqera.io/library/curl:8.17.0--03c37328f7dd882d'
     publishDir params.outdir, mode:'copy'
     
     tag "${patient_id}_${sample_id}_${file_type}"

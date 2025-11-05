@@ -1,6 +1,6 @@
 process PARSE_SAMPLESHEET {
-    conda "bioconda::python=3.9"
-        
+    container 'docker://python:3.14'
+
     input:
     path samplesheet
     

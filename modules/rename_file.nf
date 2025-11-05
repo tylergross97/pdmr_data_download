@@ -1,4 +1,5 @@
 process RENAME_FILE {
+    container 'docker://python:3.14'
     publishDir params.outdir, mode: 'copy'
     
     tag "${patient_id}_${sample_id}"

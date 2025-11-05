@@ -1,5 +1,5 @@
 process PARSE_SAMPLESHEET {
-    container 'docker://python:3.14'
+    container 'community.wave.seqera.io/library/python:3.9.0--d66465ac84d998b7'
 
     input:
     path samplesheet

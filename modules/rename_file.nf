@@ -12,35 +12,28 @@ process RENAME_FILE {
     
     script:
     """
+    # Store the destination path in a shell variable
+    DEST_PATH="${dest_path}"
+    
     # Initialize log
     echo "Processing file renaming for ${patient_id}_${sample_id}" > rename_log.txt
     
     # Move file to final destination
-    mkdir -p "\$(dirname "${dest_path}")"
+    mkdir -p "\$(dirname "\$DEST_PATH")"
     
     if [[ -s "${downloaded_file}" ]]; then
-        cp "${downloaded_file}" "${dest_path}"
-        echo "Moved: ${downloaded_file} -> ${dest_path}" >> rename_log.txt
+        cp "${downloaded_file}" "\$DEST_PATH"
+        echo "Moved: ${downloaded_file} -> \$DEST_PATH" >> rename_log.txt
         
         # Handle file extension normalization for specific samples
-        if [[ "${sample_id}" == "germline" && "${file_type}" == "normal_wes" ]]; then
-            echo "Normalizing file extensions for germline in patient ${patient_id}" >> rename_log.txt
-            
-            # Check if file has .FASTQ.gz extension and rename to .fastq.gz
-            if [[ "${dest_path}" == *.FASTQ.gz ]]; then
-                new_path="\${dest_path%.FASTQ.gz}.fastq.gz"
-                mv "${dest_path}" "\$new_path"
-                echo "Renamed: ${dest_path} -> \$new_path" >> rename_log.txt
-            fi
-            
-        elif [[ "${sample_id}" == "ORIGINATOR" && ("${file_type}" == "tumor_wes" || "${file_type}" == "tumor_rnaseq") ]]; then
+        if [[ "${sample_id}" == "ORIGINATOR" && ("${file_type}" == "tumor_wes" || "${file_type}" == "tumor_rnaseq") ]]; then
             echo "Normalizing file extensions for ORIGINATOR in patient ${patient_id}" >> rename_log.txt
             
             # Check if file has .FASTQ.gz extension and rename to .fastq.gz
-            if [[ "${dest_path}" == *.FASTQ.gz ]]; then
-                new_path="\${dest_path%.FASTQ.gz}.fastq.gz"
-                mv "${dest_path}" "\$new_path"
-                echo "Renamed: ${dest_path} -> \$new_path" >> rename_log.txt
+            if [[ "\$DEST_PATH" == *.FASTQ.gz ]]; then
+                new_path="\${DEST_PATH%.FASTQ.gz}.fastq.gz"
+                mv "\$DEST_PATH" "\$new_path"
+                echo "Renamed: \$DEST_PATH -> \$new_path" >> rename_log.txt
             fi
         fi
     else

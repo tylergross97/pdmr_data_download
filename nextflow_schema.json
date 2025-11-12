@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/tylergross97/pdmr_data_download/main/nextflow_schema.json",
+  "title": "tylergross97/pdmr_data_download pipeline parameters",
+  "description": "Nextflow workflow for downloading data from NCI's PDMR",
+  "type": "object",
+  "$defs": {
+    "input_output_options": {
+      "title": "Input/Output Options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define input data and output locations for the pipeline.",
+      "required": [
+        "samplesheet",
+        "base_dir",
+        "outdir"
+      ],
+      "properties": {
+        "samplesheet": {
+          "type": "string",
+          "format": "file-path",
+          "mimetype": "text/csv",
+          "pattern": "^\\S+\\.(csv|tsv)$",
+          "description": "Path to the samplesheet file containing PDMR sample information",
+          "help_text": "A CSV or TSV file containing the list of PDMR samples to download. The file should contain sample identifiers and any required metadata for data retrieval.",
+          "fa_icon": "fas fa-file-csv"
+        },
+        "base_dir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "Base directory path for PDMR data location or temporary storage",
+          "help_text": "Specify the base directory where PDMR data will be accessed or temporarily stored during the download process.",
+          "fa_icon": "fas fa-folder"
+        },
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where downloaded PDMR data will be saved",
+          "help_text": "All downloaded files and pipeline results will be saved to this directory. Use absolute paths when working with cloud infrastructure.",
+          "fa_icon": "fas fa-folder-open"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/input_output_options"
+    }
+  ]
+}

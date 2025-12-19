@@ -43,4 +43,11 @@ process RENAME_FILE {
     # Create a final file marker
     echo "Processed ${patient_id}_${sample_id}_${file_type}" > final_file
     """
+
+    stub:
+    """
+    # Create stub final file marker
+    echo "STUB: Would process ${patient_id}_${sample_id}_${file_type}" > final_file
+    echo "STUB: Would move to ${dest_path}" >> final_file
+    """
 }

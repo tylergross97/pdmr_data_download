@@ -1,0 +1,94 @@
+nextflow_process {
+
+    name "Test DOWNLOAD_FILE"
+    script "modules/download_file.nf"
+    process "DOWNLOAD_FILE"
+
+    test("Should download file successfully") {
+
+        when {
+            process {
+                """
+                input[0] = tuple(
+                    'PID001',
+                    'germline',
+                    'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/generic/txt/hello.txt',
+                    '/data/pdmr/PID_PID001/normal_wes/test_file.txt',
+                    'normal_wes'
+                )
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.downloaded.size() == 1
+            assert process.out.log.size() == 1
+            
+            // Check that the downloaded file exists
+            def downloaded = process.out.downloaded.get(0)
+            assert downloaded.size() == 5  // tuple with 5 elements
+            assert downloaded[0] == 'PID001'
+            assert downloaded[1] == 'germline'
+            assert downloaded[4] == 'normal_wes'
+            
+            // Check log file exists
+            assert path(process.out.log.get(0)).exists()
+        }
+    }
+
+    test("Should handle empty URL gracefully") {
+
+        when {
+            process {
+                """
+                input[0] = tuple(
+                    'PID002',
+                    'ORIGINATOR',
+                    '',
+                    '/data/pdmr/PID_PID002/tumor_wes/test.fastq.gz',
+                    'tumor_wes'
+                )
+                """
+            }
+        }
+
+        then {
+            // Process should succeed even with empty URL
+            assert process.success
+            assert process.out.downloaded.size() == 1
+            assert process.out.log.size() == 1
+            
+            // Check log was created
+            def logContent = path(process.out.log.get(0)).text
+            assert logContent.contains('PID002')
+        }
+    }
+
+    test("Should handle null URL gracefully") {
+
+        when {
+            process {
+                """
+                input[0] = tuple(
+                    'PID003',
+                    'PDX_P1',
+                    'null',
+                    '/data/pdmr/PID_PID003/tumor_rnaseq/test.fastq.gz',
+                    'tumor_rnaseq'
+                )
+                """
+            }
+        }
+
+        then {
+            // Process should succeed with null URL
+            assert process.success
+            assert process.out.downloaded.size() == 1
+            
+            // Check log was created
+            def logContent = path(process.out.log.get(0)).text
+            assert logContent.contains('PID003')
+        }
+    }
+}

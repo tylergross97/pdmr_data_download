@@ -1,0 +1,135 @@
+nextflow_process {
+
+    name "Test RENAME_FILE"
+    script "modules/rename_file.nf"
+    process "RENAME_FILE"
+
+    test("Should rename and move file to destination") {
+
+        when {
+            process {
+                """
+                // Create a test file
+                def testFile = file("\${workDir}/test_input.txt")
+                testFile.text = "test content"
+                
+                input[0] = tuple(
+                    'PID001',
+                    'germline',
+                    testFile,
+                    '/data/pdmr/PID_PID001/normal_wes/renamed_file.txt',
+                    'normal_wes'
+                )
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.organized.size() == 1
+            
+            // Check tuple structure
+            def organized = process.out.organized.get(0)
+            assert organized.size() == 5
+            assert organized[0] == 'PID001'
+            assert organized[1] == 'germline'
+            assert organized[4] == 'normal_wes'
+            
+            // Check that output file exists
+            assert path(organized[2]).exists()
+            assert path(organized[2]).text == "test content"
+        }
+    }
+
+    test("Should normalize .FASTQ.gz to .fastq.gz") {
+
+        when {
+            process {
+                """
+                // Create a test file
+                def testFile = file("\${workDir}/test_input.FASTQ.gz")
+                testFile.text = "fastq content"
+                
+                input[0] = tuple(
+                    'PID002',
+                    'ORIGINATOR',
+                    testFile,
+                    '/data/pdmr/PID_PID002/tumor_wes/sample.FASTQ.gz',
+                    'tumor_wes'
+                )
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.organized.size() == 1
+            
+            def organized = process.out.organized.get(0)
+            def outputPath = organized[3]
+            
+            // Check that the extension was normalized
+            assert outputPath.endsWith('.fastq.gz')
+            assert !outputPath.contains('.FASTQ.gz')
+        }
+    }
+
+    test("Should handle files that don't need renaming") {
+
+        when {
+            process {
+                """
+                // Create a test file with correct extension
+                def testFile = file("\${workDir}/test_input.fastq.gz")
+                testFile.text = "already correct"
+                
+                input[0] = tuple(
+                    'PID003',
+                    'PDX_P1',
+                    testFile,
+                    '/data/pdmr/PID_PID003/tumor_rnaseq/sample.fastq.gz',
+                    'tumor_rnaseq'
+                )
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.organized.size() == 1
+            
+            def organized = process.out.organized.get(0)
+            assert organized[3].endsWith('.fastq.gz')
+            assert path(organized[2]).exists()
+        }
+    }
+
+    test("Should handle empty file") {
+
+        when {
+            process {
+                """
+                // Create an empty test file
+                def testFile = file("\${workDir}/empty_file.txt")
+                testFile.text = ""
+                
+                input[0] = tuple(
+                    'PID004',
+                    'sample1',
+                    testFile,
+                    '/data/pdmr/PID_PID004/normal_wes/empty.txt',
+                    'normal_wes'
+                )
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.organized.size() == 1
+            
+            def organized = process.out.organized.get(0)
+            assert path(organized[2]).exists()
+        }
+    }
+}

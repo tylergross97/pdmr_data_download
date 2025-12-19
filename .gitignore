@@ -1,0 +1,23 @@
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+results/
+.nf-test/
+.nf-test.log
+
+# Test outputs
+test_output/
+*.pyc
+__pycache__/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

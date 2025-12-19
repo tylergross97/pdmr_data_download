@@ -1,0 +1,64 @@
+nextflow_process {
+
+    name "Test PARSE_SAMPLESHEET"
+    script "modules/parse_samplesheet.nf"
+    process "PARSE_SAMPLESHEET"
+
+    test("Should parse samplesheet and emit download tasks") {
+
+        when {
+            params {
+                base_dir = "/data/pdmr"
+            }
+            process {
+                """
+                input[0] = file("${projectDir}/tests/data/test_samplesheet.csv")
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.tasks.size() == 1
+            
+            // Check that we have multiple download tasks in the channel
+            def tasks = path(process.out.tasks.get(0)).text.split('\n').findAll { it.trim() }
+            
+            // Verify we have the expected number of tasks (excluding header if present)
+            // PID001 germline: 2 files (normal_wes_1, normal_wes_2)
+            // PID001 ORIGINATOR: 4 files (tumor_wes_1, tumor_wes_2, tumor_rnaseq_1, tumor_rnaseq_2)
+            // PID002 PDX_P3: 2 files (tumor_wes_1, tumor_wes_2)
+            assert tasks.size() >= 8  // At least 8 download tasks
+            
+            // Check that task lines contain expected patterns
+            def taskContent = path(process.out.tasks.get(0)).text
+            assert taskContent.contains('PID001')
+            assert taskContent.contains('PID002')
+            assert taskContent.contains('germline')
+            assert taskContent.contains('ORIGINATOR')
+            assert taskContent.contains('PDX_P3')
+            assert taskContent.contains('normal_wes')
+            assert taskContent.contains('tumor_wes')
+            assert taskContent.contains('tumor_rnaseq')
+        }
+    }
+
+    test("Should handle empty samplesheet") {
+
+        when {
+            params {
+                base_dir = "/data/pdmr"
+            }
+            process {
+                """
+                input[0] = file("${projectDir}/tests/data/empty_samplesheet.csv")
+                """
+            }
+        }
+
+        then {
+            // Should still succeed but with minimal output
+            assert process.success
+        }
+    }
+}

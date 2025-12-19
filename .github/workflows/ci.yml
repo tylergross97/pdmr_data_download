@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - seqera-ai/*
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint Nextflow Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.04.7"
+
+      - name: Run Nextflow lint
+        run: nextflow lint .
+
+  test:
+    name: Run nf-test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.04.7"
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install nf-test
+        run: |
+          curl -fsSL https://code.askimed.com/install/nf-test | bash
+          sudo mv nf-test /usr/local/bin/
+
+      - name: Run nf-test
+        run: nf-test test --verbose
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: .nf-test/reports/
+          retention-days: 7
+
+  validate-config:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.04.7"
+
+      - name: Validate nextflow.config
+        run: |
+          nextflow config -flat
+
+      - name: Check pipeline schema (if exists)
+        run: |
+          if [ -f "nextflow_schema.json" ]; then
+            echo "Schema validation would go here"
+          else
+            echo "No schema file found - skipping"
+          fi
+
+  dry-run:
+    name: Dry Run Pipeline
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.04.7"
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create test samplesheet
+        run: |
+          cat > test_samplesheet.csv << EOF
+          patient_id,sample_id,normal_wes_1,normal_wes_2,tumor_wes_1,tumor_wes_2,tumor_rnaseq_1,tumor_rnaseq_2
+          TEST001,germline,https://example.com/test1.fastq.gz,https://example.com/test2.fastq.gz,,,
+          EOF
+
+      - name: Dry run with stub
+        run: |
+          nextflow run main.nf \
+            --samplesheet test_samplesheet.csv \
+            --base_dir ./test_output \
+            --outdir ./results \
+            -profile docker \
+            -stub-run
+
+  all-checks:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint, test, validate-config, dry-run]
+    steps:
+      - name: All checks passed
+        run: echo "✅ All CI checks passed successfully!"

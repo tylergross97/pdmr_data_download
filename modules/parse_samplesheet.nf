@@ -51,4 +51,11 @@ process PARSE_SAMPLESHEET {
                 dest = f"{base_dir}/PID_{patient_id}/tumor_rnaseq/{sample_id}/{row['tumor_rnaseq_2'].split('/')[-1]}"
                 writer.writerow([patient_id, sample_id, row['tumor_rnaseq_2'], dest, 'tumor_rnaseq'])
     """
+
+    stub:
+    """
+    # Create stub download tasks file
+    echo "patient_id,sample_id,url,dest_path,file_type" > download_tasks.csv
+    echo "STUB001,stub_sample,https://example.com/stub.fastq.gz,/stub/path/stub.fastq.gz,stub_type" >> download_tasks.csv
+    """
 }

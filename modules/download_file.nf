@@ -12,7 +12,6 @@ process DOWNLOAD_FILE {
     path "download_log.txt", emit: log
     
     script:
-    def filename = dest_path.split('/').last()
     """
     # Create log file
     echo "Processing: ${patient_id}, ${sample_id}, ${file_type}" > download_log.txt
@@ -42,5 +41,16 @@ process DOWNLOAD_FILE {
         echo "SKIPPED (no URL provided): ${dest_path}" >> download_log.txt
         touch downloaded_file
     fi
+    """
+
+    stub:
+    """
+    # Create stub log
+    echo "STUB: Processing ${patient_id}, ${sample_id}, ${file_type}" > download_log.txt
+    echo "STUB: Would download from ${url}" >> download_log.txt
+    echo "STUB: Destination would be ${dest_path}" >> download_log.txt
+    
+    # Create stub downloaded file
+    echo "stub content" > downloaded_file
     """
 }

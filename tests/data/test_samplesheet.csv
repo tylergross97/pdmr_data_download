@@ -1,0 +1,4 @@
+patient_id,sample_id,normal_wes_1,normal_wes_2,tumor_wes_1,tumor_wes_2,tumor_rnaseq_1,tumor_rnaseq_2
+PID001,germline,https://example.com/normal_R1.fastq.gz,https://example.com/normal_R2.fastq.gz,,,
+PID001,ORIGINATOR,,,https://example.com/tumor_R1.fastq.gz,https://example.com/tumor_R2.fastq.gz,https://example.com/rna_R1.fastq.gz,https://example.com/rna_R2.fastq.gz
+PID002,PDX_P3,,,https://example.com/pdx_R1.fastq.gz,https://example.com/pdx_R2.fastq.gz,,

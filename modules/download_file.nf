@@ -8,39 +8,36 @@ process DOWNLOAD_FILE {
     tuple val(patient_id), val(sample_id), val(url), val(dest_path), val(file_type)
     
     output:
-    tuple val(patient_id), val(sample_id), path("downloaded_file"), val(dest_path), val(file_type), emit: downloaded
+    tuple val(patient_id), val(sample_id), path("${filename}"), val(dest_path), val(file_type), emit: downloaded
     path "download_log.txt", emit: log
     
     script:
-    def filename = dest_path.split('/').last()
+    filename = dest_path.split('/').last()
     """
     # Create log file
     echo "Processing: ${patient_id}, ${sample_id}, ${file_type}" > download_log.txt
     
     # Check if URL is provided
     if [[ -n "${url}" && "${url}" != "null" ]]; then
-        # Create destination directory structure
-        mkdir -p "\$(dirname "${dest_path}")"
-        
-        # Check if file already exists
-        if [[ -f "${dest_path}" ]]; then
+        # Check if file already exists at destination
+        if aws s3 ls "${dest_path}" 2>/dev/null; then
             echo "SKIPPED (already exists): ${dest_path}" >> download_log.txt
-            # Create a symlink to the existing file for consistency
-            ln -s "${dest_path}" downloaded_file
+            # Create empty placeholder file
+            touch "${filename}"
         else
-            echo "Downloading ${url} -> ${dest_path}" >> download_log.txt
+            echo "Downloading ${url} -> ${filename}" >> download_log.txt
             
             # Download with curl (resume capability and follow redirects)
-            if curl -L -C - -o downloaded_file "${url}"; then
-                echo "SUCCESS: ${dest_path}" >> download_log.txt
+            if curl -L -C - -o "${filename}" "${url}"; then
+                echo "SUCCESS: Downloaded ${filename}" >> download_log.txt
             else
-                echo "FAILED: ${dest_path}" >> download_log.txt
+                echo "FAILED: ${url}" >> download_log.txt
                 exit 1
             fi
         fi
     else
         echo "SKIPPED (no URL provided): ${dest_path}" >> download_log.txt
-        touch downloaded_file
+        touch "${filename}"
     fi
     """
 }

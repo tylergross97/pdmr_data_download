@@ -1,8 +1,10 @@
 process RENAME_FILE {
-    container 'python:3.13-slim'
+    // Use bash container for better shell script support
+    container 'ubuntu:22.04'
     publishDir "${params.outdir}", mode: 'copy', saveAs: { filename -> 
         // Only publish the organized directory structure, not logs
-        if (filename.startsWith('PID_')) {
+        // Patient directories start with "PID" (e.g., "PID262622")
+        if (filename.startsWith('PID') && !filename.endsWith('.txt')) {
             return filename
         }
         return null
@@ -14,7 +16,7 @@ process RENAME_FILE {
     tuple val(patient_id), val(sample_id), path(downloaded_file), val(dest_path), val(file_type)
     
     output:
-    path "PID_${patient_id}/**", emit: organized_files
+    path "${patient_id}/**", emit: organized_files
     path "rename_log.txt", emit: log
     
     script:
@@ -24,11 +26,12 @@ process RENAME_FILE {
         output_filename = output_filename.replaceAll(/\.FASTQ\.gz$/, '.fastq.gz')
     }
     // Build the directory path based on file type
-    // For normal_wes: PID_XXX/normal_wes/
-    // For tumor files: PID_XXX/tumor_wes/SAMPLE_ID/ or PID_XXX/tumor_rnaseq/SAMPLE_ID/
+    // Patient ID already contains "PID" prefix from source data
+    // For normal_wes: PID262622/normal_wes/
+    // For tumor files: PID262622/tumor_wes/SAMPLE_ID/ or PID262622/tumor_rnaseq/SAMPLE_ID/
     def output_subdir = file_type == 'normal_wes' ? 
-        "PID_${patient_id}/${file_type}" : 
-        "PID_${patient_id}/${file_type}/${sample_id}"
+        "${patient_id}/${file_type}" : 
+        "${patient_id}/${file_type}/${sample_id}"
     """
     # Initialize log
     echo "Processing file renaming for ${patient_id}_${sample_id}_${file_type}" > rename_log.txt

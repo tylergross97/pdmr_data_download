@@ -1,5 +1,5 @@
 process RENAME_FILE {
-    container 'community.wave.seqera.io/library/python:3.13'
+    container 'python:3.13-slim'
     publishDir "${params.outdir}", mode: 'copy', saveAs: { filename -> 
         // Only publish the organized directory structure, not logs
         if (filename.startsWith('PID_')) {

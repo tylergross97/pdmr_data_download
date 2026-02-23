@@ -37,5 +37,9 @@ workflow {
     
    DOWNLOAD_FILE(download_tasks_ch)
 
+   // Organize files into proper directory structure
+   // Output structure: PID_XXX/normal_wes/<files>
+   //                   PID_XXX/tumor_wes/SAMPLE_ID/<files>
+   //                   PID_XXX/tumor_rnaseq/SAMPLE_ID/<files>
    RENAME_FILE(DOWNLOAD_FILE.out.downloaded)
 }

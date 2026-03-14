@@ -22,7 +22,7 @@ process RENAME_FILE {
     mkdir -p "\$(dirname "\$DEST_PATH")"
     
     if [[ -s "${downloaded_file}" ]]; then
-        cp "${downloaded_file}" "\$DEST_PATH"
+        mv "${downloaded_file}" "\$DEST_PATH"
         echo "Moved: ${downloaded_file} -> \$DEST_PATH" >> rename_log.txt
         
         # Handle file extension normalization for specific samples

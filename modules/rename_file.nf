@@ -40,8 +40,8 @@ process RENAME_FILE {
     mkdir -p "${output_subdir}"
     
     if [[ -s "${downloaded_file}" ]]; then
-        # Copy and rename file
-        cp "${downloaded_file}" "${output_subdir}/${output_filename}"
+        # Move and rename file
+        mv "${downloaded_file}" "${output_subdir}/${output_filename}"
         echo "Organized: ${downloaded_file} -> ${output_subdir}/${output_filename}" >> rename_log.txt
         echo "File size: \$(stat -f%z "${output_subdir}/${output_filename}" 2>/dev/null || stat -c%s "${output_subdir}/${output_filename}" 2>/dev/null)" >> rename_log.txt
     else

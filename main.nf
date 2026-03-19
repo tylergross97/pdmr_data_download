@@ -17,7 +17,6 @@ def validateParams() {
 
 include { PARSE_SAMPLESHEET } from './modules/parse_samplesheet.nf'
 include { DOWNLOAD_FILE } from './modules/download_file.nf'
-include { RENAME_FILE } from './modules/rename_file.nf'
 
 workflow {
    validateParams()
@@ -36,10 +35,4 @@ workflow {
         }
     
    DOWNLOAD_FILE(download_tasks_ch)
-
-   // Organize files into proper directory structure
-   // Output structure: PID_XXX/normal_wes/<files>
-   //                   PID_XXX/tumor_wes/SAMPLE_ID/<files>
-   //                   PID_XXX/tumor_rnaseq/SAMPLE_ID/<files>
-   RENAME_FILE(DOWNLOAD_FILE.out.downloaded)
 }

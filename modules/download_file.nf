@@ -15,6 +15,7 @@ process DOWNLOAD_FILE {
     tuple val(patient_id), val(sample_id), val(url), val(dest_path), val(file_type)
 
     output:
+    path "${filename}", emit: downloaded
     path "download_log.txt", emit: log
 
     script:

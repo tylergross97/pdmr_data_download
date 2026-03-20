@@ -1,8 +1,8 @@
 process DOWNLOAD_FILE {
     container 'community.wave.seqera.io/library/curl:8.17.0--03c37328f7dd882d'
-    publishDir params.outdir, mode: 'copy', saveAs: { filename ->
-        if (filename.endsWith('.txt')) return null
-        def output_filename = filename.replaceAll(/\.FASTQ\.gz$/, '.fastq.gz')
+    publishDir params.outdir, mode: 'move', saveAs: { fname ->
+        if (fname.endsWith('.txt')) return null
+        def output_filename = fname.replaceAll(/\.FASTQ\.gz$/, '.fastq.gz')
         def output_subdir = file_type == 'normal_wes' ?
             "${patient_id}/${file_type}" :
             "${patient_id}/${file_type}/${sample_id}"
